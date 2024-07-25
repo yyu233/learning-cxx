@@ -1,5 +1,7 @@
 ﻿#include "../exercise.h"
-
+#include <cstring>
+#include <array>
+#include <algorithm>
 // READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
 
 template<class T>
@@ -10,8 +12,13 @@ struct Tensor4D {
     Tensor4D(unsigned int const shape_[4], T const *data_) {
         unsigned int size = 1;
         // TODO: 填入正确的 shape 并计算 size
+        for (int i = 0; i < 4; ++i) {
+            size *= shape_[i];
+            shape[i] = shape_[i];
+        }
+
         data = new T[size];
-        std::memcpy(data, data_, size * sizeof(T));
+        memcpy(data, data_, size * sizeof(T));
     }
     ~Tensor4D() {
         delete[] data;
@@ -28,6 +35,27 @@ struct Tensor4D {
     // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
     Tensor4D &operator+=(Tensor4D const &others) {
         // TODO: 实现单向广播的加法
+        for (size_t firstDim = 0; firstDim < shape[0]; ++firstDim) {
+            size_t otherFirstDim = (shape[0] > others.shape[0]) ? 0 : firstDim;
+            for (size_t secondDim = 0; secondDim < shape[1]; ++secondDim) {
+                size_t otherSecondDim = (shape[1] > others.shape[1]) ? 0 : secondDim;
+                for (size_t thirdDim = 0; thirdDim < shape[2]; ++thirdDim) {
+                    size_t otherThirdDim = (shape[2] > others.shape[2]) ? 0 : thirdDim;
+                        for (size_t fourthDim = 0; fourthDim < shape[3]; ++fourthDim) {
+                                size_t otherFourthDim = (shape[3] > others.shape[3]) ? 0 : fourthDim;
+                                size_t thisIndex = firstDim * shape[3] * shape[1] * shape[2] +
+                                                    secondDim * shape[3] * shape[2] +
+                                                    thirdDim * shape[3] +
+                                                    fourthDim;
+                                size_t otherIndex = otherFirstDim * others.shape[3] * others.shape[1] * others.shape[2] +
+                                                    otherSecondDim * others.shape[3] * others.shape[2] +
+                                                    otherThirdDim * others.shape[3] +
+                                                    otherFourthDim;
+                                data[thisIndex] += others.data[otherIndex];
+                        }
+                }
+            }
+        }
         return *this;
     }
 };
